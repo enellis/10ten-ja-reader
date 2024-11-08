@@ -1,8 +1,8 @@
 import { ContentConfigParams } from '../../../common/content-config-params';
 import { classes } from '../../../utils/classes';
 
+import { getEraInfo } from '../../dates';
 import { SelectionMeta } from '../../meta';
-import { getEraInfo } from '../../years';
 
 import { CurrencyInfo } from './CurrencyInfo';
 import { EraInfoComponent } from './EraInfoComponent';
@@ -30,7 +30,7 @@ export function MetadataContainer({
   let metadata = undefined;
   switch (meta.type) {
     case 'era': {
-      const eraInfo = getEraInfo(meta.era);
+      const eraInfo = getEraInfo(meta);
       if (eraInfo) {
         metadata = <EraInfoComponent meta={meta} eraInfo={eraInfo} />;
       }

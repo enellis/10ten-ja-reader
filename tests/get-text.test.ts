@@ -502,6 +502,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 5,
     });
   });
@@ -523,6 +525,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 5,
     });
   });
@@ -544,6 +548,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 5,
     });
   });
@@ -566,6 +572,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 7,
     });
   });
@@ -588,6 +596,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 4,
     });
   });
@@ -617,6 +627,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 5,
     });
   });
@@ -644,6 +656,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 7,
     });
   });
@@ -673,6 +687,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 5,
     });
   });
@@ -694,6 +710,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '令和',
       year: 0,
+      month: undefined,
+      day: undefined,
       matchLen: 4,
     });
   });
@@ -721,6 +739,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 0,
+      month: undefined,
+      day: undefined,
       matchLen: 5,
     });
   });
@@ -742,6 +762,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 56,
+      month: undefined,
+      day: undefined,
       matchLen: 6,
     });
   });
@@ -763,6 +785,8 @@ describe('getTextAtPoint', () => {
       type: 'era',
       era: '昭和',
       year: 3,
+      month: undefined,
+      day: undefined,
       matchLen: 3,
     });
   });
