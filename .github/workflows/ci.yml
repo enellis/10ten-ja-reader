@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - 'main'
+    paths-ignore:
+      - '.github/**'
+      - 'wiki/**'
+      - 'scripts/**'
     tags:
       - 'v*'
   pull_request:
