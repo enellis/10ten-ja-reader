@@ -1,18 +1,23 @@
 import type { RenderableProps } from 'preact';
-import { useLayoutEffect } from 'preact/hooks';
+import { useEffect, useLayoutEffect } from 'preact/hooks';
 import { useFixtureInput, useFixtureSelect } from 'react-cosmos/client';
 
-import { I18nProvider } from '../../common/i18n';
+import { locale } from '../../common/i18n';
 import { EmptyProps } from '../../utils/type-helpers';
 
-import { PopupOptionsProvider } from './options-context';
+import { popupOptions } from './popup-options';
 
 export default function PopupDecorator({
   children,
 }: RenderableProps<EmptyProps>) {
-  const [locale] = useFixtureSelect('locale', {
+  const [selectLocale] = useFixtureSelect('locale', {
     options: ['en', 'ja', 'zh_CN'],
   });
+  useEffect(() => {
+    if (locale !== undefined) {
+      locale.value = selectLocale;
+    }
+  }, [selectLocale]);
 
   const [themeName] = useFixtureSelect('theme', {
     options: ['black', 'light', 'blue', 'lightblue', 'yellow'],
@@ -30,6 +35,9 @@ export default function PopupDecorator({
 
   // For when the popup is marked as being interactive
   const [interactive] = useFixtureInput('interactive', true);
+  useEffect(() => {
+    popupOptions.interactive.value = interactive;
+  }, [interactive]);
 
   useLayoutEffect(() => {
     if (massivePageFontSize) {
@@ -40,17 +48,13 @@ export default function PopupDecorator({
   }, [massivePageFontSize]);
 
   return (
-    <I18nProvider locale={locale}>
-      <PopupOptionsProvider interactive={interactive}>
-        <div
-          className={`theme-${themeName} window bundled-fonts`}
-          style={{
-            '--base-font-size': `var(--${fontSize}-font-size)`,
-          }}
-        >
-          {children}
-        </div>
-      </PopupOptionsProvider>
-    </I18nProvider>
+    <div
+      className={`theme-${themeName} window bundled-fonts`}
+      style={{
+        '--base-font-size': `var(--${fontSize}-font-size)`,
+      }}
+    >
+      {children}
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { KanjiResult } from '@birchill/jpdict-idb';
-import { useRef } from 'preact/hooks';
+import { useSignal } from '@preact/signals';
 
 import type { ReferenceAbbreviation } from '../../common/refs';
 import { classes } from '../../utils/classes';
@@ -7,7 +7,7 @@ import { classes } from '../../utils/classes';
 import { KanjiInfo } from './KanjiInfo';
 import { KanjiReferencesTable } from './KanjiReferencesTable';
 import { KanjiStrokeAnimation } from './KanjiStrokeAnimation';
-import { usePopupOptions } from './options-context';
+import { popupOptions } from './popup-options';
 import { containerHasSelectedText } from './selection';
 import type { StartCopyCallback } from './show-popup';
 
@@ -21,7 +21,7 @@ export type Props = {
 };
 
 export function KanjiEntry(props: Props) {
-  const kanjiTable = useRef<HTMLDivElement>(null);
+  const kanjiTable = useSignal<HTMLDivElement | null>(null);
 
   return (
     <div
@@ -36,13 +36,13 @@ export function KanjiEntry(props: Props) {
         props.selectState === 'selected' && '-selected',
         props.selectState === 'flash' && '-flash'
       )}
-      ref={kanjiTable}
+      ref={(e) => (kanjiTable.value = e)}
     >
       <div class="tp-flex tp-items-start tp-gap-[20px]">
         <KanjiCharacter
           c={props.entry.c}
           onClick={(trigger) => {
-            if (containerHasSelectedText(kanjiTable.current!)) {
+            if (containerHasSelectedText(kanjiTable.value!)) {
               return;
             }
 
@@ -75,7 +75,7 @@ type KanjiCharacterProps = {
 };
 
 function KanjiCharacter(props: KanjiCharacterProps) {
-  const { interactive } = usePopupOptions();
+  const interactive = popupOptions.interactive.value;
 
   // There's no way to trigger the animation when we're not in "mouse
   // interactive" mode so just show the static character in that case.
@@ -95,8 +95,8 @@ function KanjiCharacter(props: KanjiCharacterProps) {
 }
 
 function StaticKanjiCharacter(props: KanjiCharacterProps) {
-  const lastPointerType = useRef<string>('touch');
-  const { interactive } = usePopupOptions();
+  const lastPointerType = useSignal('touch');
+  const interactive = popupOptions.interactive.value;
 
   return (
     <div
@@ -124,10 +124,10 @@ function StaticKanjiCharacter(props: KanjiCharacterProps) {
       )}
       lang="ja"
       onPointerUp={(evt) => {
-        lastPointerType.current = evt.pointerType;
+        lastPointerType.value = evt.pointerType;
       }}
       onClick={() => {
-        const trigger = lastPointerType.current === 'mouse' ? 'mouse' : 'touch';
+        const trigger = lastPointerType.value === 'mouse' ? 'mouse' : 'touch';
         props.onClick?.(trigger);
       }}
     >

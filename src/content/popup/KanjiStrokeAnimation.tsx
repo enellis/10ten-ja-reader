@@ -1,13 +1,9 @@
-import type { RefObject } from 'preact';
 import {
-  type MutableRef,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'preact/hooks';
+  type Signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from '@preact/signals';
 
 import { useLocale } from '../../common/i18n';
 import { classes } from '../../utils/classes';
@@ -35,13 +31,13 @@ export function KanjiStrokeAnimation(props: Props) {
   const { t } = useLocale();
 
   // References
-  const animatedStrokeContainer = useRef<SVGGElement>(null);
-  const timelineSvg = useRef<SVGSVGElement>(null);
-  const scrubberContainer = useRef<SVGGElement>(null);
+  const animatedStrokeContainer = useSignal<SVGGElement | null>(null);
+  const timelineSvg = useSignal<SVGSVGElement | null>(null);
+  const scrubberContainer = useSignal<SVGGElement | null>(null);
 
   // Animation state
-  const [isPlaying, setIsPlaying] = useState(false);
-  const currentAnimations = useRef<Array<Animation>>([]);
+  const isPlaying = useSignal(false);
+  const currentAnimations = useSignal<Array<Animation>>([]);
 
   // Scrubber handling
   const { applySeek, onScrubberPointerDown, onTimelineClick } = useScrubber(
@@ -50,10 +46,10 @@ export function KanjiStrokeAnimation(props: Props) {
   );
 
   // Update the animation parameters
-  const subpaths = useMemo(() => props.st.split(/(?=M[0-9])/), [props.st]);
-  useLayoutEffect(() => {
-    if (!animatedStrokeContainer.current || !isPlaying) {
-      currentAnimations.current = [];
+  const subpaths = useComputed(() => props.st.split(/(?=M[0-9])/)).value;
+  useSignalEffect(() => {
+    if (!animatedStrokeContainer.value || !isPlaying.value) {
+      currentAnimations.value = [];
       return;
     }
 
@@ -61,7 +57,7 @@ export function KanjiStrokeAnimation(props: Props) {
 
     // Stroke animations
     const paths = Array.from(
-      animatedStrokeContainer.current.querySelectorAll('path')
+      animatedStrokeContainer.value.querySelectorAll('path')
     );
     const strokeDurations = paths.map(
       (stroke) => stroke.getTotalLength() * (1000 / STROKE_SPEED)
@@ -93,9 +89,9 @@ export function KanjiStrokeAnimation(props: Props) {
     }
 
     // Scrubber animation
-    if (scrubberContainer.current) {
+    if (scrubberContainer.value) {
       animations.push(
-        scrubberContainer.current.animate(
+        scrubberContainer.value.animate(
           {
             transform: [
               'translate(0)',
@@ -112,19 +108,19 @@ export function KanjiStrokeAnimation(props: Props) {
     // If we are currently seeking, fast-forward to the appropriate point
     applySeek(animations);
 
-    currentAnimations.current = animations;
+    currentAnimations.value = animations;
 
     return () => {
-      currentAnimations.current.forEach((animation) => animation.cancel());
-      currentAnimations.current = [];
+      currentAnimations.value.forEach((animation) => animation.cancel());
+      currentAnimations.value = [];
     };
-  }, [subpaths, isPlaying]);
+  });
 
   // Rendering parameters
   const strokeWidth = subpaths.length > 16 ? 4 : 5;
 
   // Copy state
-  const lastPointerType = useRef<string>('touch');
+  const lastPointerType = useSignal<string>('touch');
 
   return (
     <div class="tp-flex tp-flex-col tp-items-center tp-gap-3">
@@ -148,11 +144,10 @@ export function KanjiStrokeAnimation(props: Props) {
         )}
         viewBox="0 0 109 109"
         onPointerUp={(evt) => {
-          lastPointerType.current = evt.pointerType;
+          lastPointerType.value = evt.pointerType;
         }}
         onClick={() => {
-          const trigger =
-            lastPointerType.current === 'mouse' ? 'mouse' : 'touch';
+          const trigger = lastPointerType.value === 'mouse' ? 'mouse' : 'touch';
           props.onClick?.(trigger);
         }}
       >
@@ -182,9 +177,9 @@ export function KanjiStrokeAnimation(props: Props) {
           stroke-linejoin="round"
           stroke="var(--primary-highlight)"
           stroke-dasharray="100 100"
-          stroke-dashoffset={isPlaying ? 100 : 0}
+          stroke-dashoffset={isPlaying.value ? 100 : 0}
           fill="none"
-          ref={animatedStrokeContainer}
+          ref={(e) => (animatedStrokeContainer.value = e)}
         >
           {subpaths.map((path, index) => (
             <path
@@ -205,7 +200,7 @@ export function KanjiStrokeAnimation(props: Props) {
          * very good hit detection of small targets. */}
         <svg
           class="tp-w-big-kanji"
-          ref={timelineSvg}
+          ref={(e) => (timelineSvg.value = e)}
           viewBox="0 0 100 50"
           style={{
             webkitTapHighlightColor: 'transparent',
@@ -213,30 +208,32 @@ export function KanjiStrokeAnimation(props: Props) {
         >
           {/* Play/stop button */}
           <g
-            onClick={() => setIsPlaying((prev) => !prev)}
+            onClick={() => {
+              isPlaying.value = !isPlaying.value;
+            }}
             pointer-events="all"
             class="tp-cursor-pointer tp-opacity-30 hh:hover:tp-opacity-100 tp-fill-[--text-color] hh:hover:tp-fill-[--primary-highlight] tp-transition-transform tp-duration-500"
             style={{
-              transform: isPlaying ? 'none' : 'translate(40px)',
+              transform: isPlaying.value ? 'none' : 'translate(40px)',
             }}
           >
             <title>
               {t(
-                isPlaying
+                isPlaying.value
                   ? 'content_stroke_animation_stop'
                   : 'content_stroke_animation_play'
               )}
             </title>
             {/* Play/stop button hit region */}
             <rect
-              x={isPlaying ? 0 : -40}
-              width={isPlaying ? 25 : 100}
+              x={isPlaying.value ? 0 : -40}
+              width={isPlaying.value ? 25 : 100}
               height={50}
               fill="none"
             />
             <path
               d={
-                isPlaying
+                isPlaying.value
                   ? 'M20 12.5v6a4 4 0 01-4 4l-12 0c0 0 0 0 0 0a4 4 90 01-4-4v-12a4 4 90 014-4c0 0 0 0 0 0l12 0a4 4 0 014 4z'
                   : 'M20 12.5v0a2 2 0 01-1 1.7l-16.1 8.1c-.3.1-.6.2-.9.2a2 2 90 01-2-2v-16a2 2 90 012-2c.3 0 .7.1 1 .2l16 8.1a2 2 0 011 1.7z'
               }
@@ -248,11 +245,13 @@ export function KanjiStrokeAnimation(props: Props) {
           {/* Timeline and scrubber */}
           <g
             style={{
-              transform: isPlaying ? 'translate(25px)' : 'translate(65px)',
+              transform: isPlaying.value
+                ? 'translate(25px)'
+                : 'translate(65px)',
             }}
             class={classes(
               'tp-transition-transform tp-duration-500',
-              isPlaying ? 'tp-delay-100' : 'tp-pointer-events-none'
+              isPlaying.value ? 'tp-delay-100' : 'tp-pointer-events-none'
             )}
           >
             {/* Timeline */}
@@ -260,12 +259,12 @@ export function KanjiStrokeAnimation(props: Props) {
               fill="var(--primary-highlight)"
               opacity="0.1"
               style={{
-                transform: isPlaying ? 'scale(1)' : 'scale(0)',
+                transform: isPlaying.value ? 'scale(1)' : 'scale(0)',
                 transformOrigin: '12.5px 12.5px',
               }}
               class={classes(
                 'tp-transition-transform',
-                !isPlaying && 'tp-delay-[450ms]'
+                !isPlaying.value && 'tp-delay-[450ms]'
               )}
               onClick={onTimelineClick}
             >
@@ -277,12 +276,12 @@ export function KanjiStrokeAnimation(props: Props) {
                 width={TIMELINE_RANGE + 1}
                 height={25}
                 style={{
-                  transform: isPlaying ? 'scale(1)' : 'scale(0, 1)',
+                  transform: isPlaying.value ? 'scale(1)' : 'scale(0, 1)',
                   transformOrigin: '12.5px 12.5px',
                 }}
                 class={classes(
                   'tp-transition-transform tp-duration-500',
-                  isPlaying && 'tp-delay-100'
+                  isPlaying.value && 'tp-delay-100'
                 )}
               />
               {/* Timeline rounded left end */}
@@ -291,27 +290,27 @@ export function KanjiStrokeAnimation(props: Props) {
               <path
                 d={`M${TIMELINE_RANGE + 12.5} 0a12.5 12.5 0 0 1 0 25z`}
                 style={{
-                  transform: isPlaying
+                  transform: isPlaying.value
                     ? 'translate(0)'
                     : `translate(-${TIMELINE_RANGE}px)`,
                 }}
                 class={classes(
                   'tp-transition-transform tp-duration-500',
-                  isPlaying && 'tp-delay-100'
+                  isPlaying.value && 'tp-delay-100'
                 )}
               />
             </g>
             {/* Scrubber group -- translation animation is applied here */}
-            <g ref={scrubberContainer}>
+            <g ref={(e) => (scrubberContainer.value = e)}>
               {/* Scrubber scale group */}
               <g
                 style={{
-                  transform: isPlaying ? 'scale(1)' : 'scale(0)',
+                  transform: isPlaying.value ? 'scale(1)' : 'scale(0)',
                   transformOrigin: '12.5px 12.5px',
                 }}
                 class={classes(
                   'tp-transition-transform',
-                  !isPlaying ? 'tp-delay-[400ms]' : 'tp-delay-50'
+                  !isPlaying.value ? 'tp-delay-[400ms]' : 'tp-delay-50'
                 )}
               >
                 {/* Hit region for scrubber */}
@@ -343,22 +342,20 @@ export function KanjiStrokeAnimation(props: Props) {
 }
 
 function useScrubber(
-  timelineSvg: RefObject<SVGSVGElement>,
-  currentAnimations: MutableRef<Array<Animation>>
+  timelineSvg: Signal<SVGSVGElement | null>,
+  currentAnimations: Signal<Array<Animation>>
 ): {
   applySeek: (animations: Array<Animation>) => void;
   onScrubberPointerDown: (event: PointerEvent) => void;
   onTimelineClick: (event: MouseEvent) => void;
 } {
-  const seekState = useRef<{ scrubberStart: number; offset: number } | null>(
-    null
-  );
+  let seekState: { scrubberStart: number; offset: number } | null = null;
 
   // The following callback needs to be stable so that the caller doesn't need
   // to mark it as a dependency in their effects.
 
-  const applySeek = useCallback((animations: Array<Animation>) => {
-    if (!seekState.current) {
+  const applySeek = (animations: Array<Animation>) => {
+    if (!seekState) {
       return;
     }
 
@@ -368,68 +365,64 @@ function useScrubber(
       }
       const timing = animation.effect!.getComputedTiming();
       animation.currentTime =
-        seekState.current.offset *
-        ((timing.duration as number) - FREEZE_LENGTH);
+        seekState.offset * ((timing.duration as number) - FREEZE_LENGTH);
     }
-  }, []);
+  };
 
   // The following callbacks need to be stable so we can unregister them from
   // the window when dragging stops or the component unmounts.
 
-  const onWindowPointerMove = useCallback((event: PointerEvent) => {
-    if (!seekState.current || !timelineSvg.current) {
+  const onWindowPointerMove = (event: PointerEvent) => {
+    if (!seekState || !timelineSvg.value) {
       return;
     }
 
     // Calculate the offset of the scrubber
-    const [svgX] = toSvgCoords(timelineSvg.current, event.clientX, 0);
+    const [svgX] = toSvgCoords(timelineSvg.value, event.clientX, 0);
     const offset = Math.min(
-      Math.max(
-        (svgX - seekState.current.scrubberStart) / SCRUBBER_DRAG_RANGE,
-        0
-      ),
+      Math.max((svgX - seekState.scrubberStart) / SCRUBBER_DRAG_RANGE, 0),
       1
     );
-    seekState.current.offset = offset;
+    seekState.offset = offset;
 
     // Seek each of the animations to the equivalent point
-    applySeek(currentAnimations.current);
-  }, []);
+    applySeek(currentAnimations.value);
+  };
 
-  const onWindowPointerUpOrCancel = useCallback(() => {
-    if (!seekState.current) {
+  const onWindowPointerUpOrCancel = () => {
+    if (!seekState) {
       return;
     }
 
-    currentAnimations.current.forEach((animation) => animation.play());
-    seekState.current = null;
+    currentAnimations.value.forEach((animation) => animation.play());
+    seekState = null;
 
     window.removeEventListener('pointermove', onWindowPointerMove);
     window.removeEventListener('pointerup', onWindowPointerUpOrCancel);
     window.removeEventListener('pointercancel', onWindowPointerUpOrCancel);
-  }, []);
+  };
 
-  useEffect(() => {
+  useSignalEffect(() => {
     return () => {
-      if (seekState.current) {
+      if (seekState) {
         window.removeEventListener('pointermove', onWindowPointerMove);
         window.removeEventListener('pointerup', onWindowPointerUpOrCancel);
         window.removeEventListener('pointercancel', onWindowPointerUpOrCancel);
       }
     };
-  }, []);
+  });
 
   const onScrubberPointerDown = (event: PointerEvent) => {
-    if (seekState.current || !timelineSvg.current) {
+    if (seekState || !timelineSvg.value) {
       return;
     }
 
     // Work out how far we are into the animation
-    if (currentAnimations.current.length === 0) {
+    if (currentAnimations.value.length === 0) {
       return;
     }
     const animationTiming =
-      currentAnimations.current[0].effect!.getComputedTiming();
+      currentAnimations.value[0].effect!.getComputedTiming();
     const iterationProgress = animationTiming.progress as number;
     const iterationDuration = animationTiming.duration as number;
     const strokeAnimationProgress = Math.min(
@@ -439,12 +432,12 @@ function useScrubber(
     );
 
     // Based on that, work out where the scrubber should start
-    const [svgX] = toSvgCoords(timelineSvg.current, event.clientX, 0);
+    const [svgX] = toSvgCoords(timelineSvg.value, event.clientX, 0);
     const scrubberStart = svgX - strokeAnimationProgress * SCRUBBER_DRAG_RANGE;
-    seekState.current = { scrubberStart, offset: strokeAnimationProgress };
+    seekState = { scrubberStart, offset: strokeAnimationProgress };
 
     // Pause the animations
-    currentAnimations.current.forEach((animation) => animation.pause());
+    currentAnimations.value.forEach((animation) => animation.pause());
 
     // Register the move/up/cancel events
     window.addEventListener('pointermove', onWindowPointerMove);
@@ -452,24 +445,24 @@ function useScrubber(
     window.addEventListener('pointercancel', onWindowPointerUpOrCancel);
   };
 
-  const onTimelineClick = useCallback((event: MouseEvent) => {
-    if (seekState.current || !timelineSvg.current) {
+  const onTimelineClick = (event: MouseEvent) => {
+    if (seekState || !timelineSvg.value) {
       return;
     }
 
-    const [svgX] = toSvgCoords(timelineSvg.current, event.clientX, 0);
+    const [svgX] = toSvgCoords(timelineSvg.value, event.clientX, 0);
     const offset = Math.min(
       Math.max((svgX - TIMELINE_OFFSET) / TIMELINE_RANGE, 0),
       1
     );
 
     // Seek the animations to that point
-    for (const animation of currentAnimations.current) {
+    for (const animation of currentAnimations.value) {
       const timing = animation.effect!.getComputedTiming();
       animation.currentTime =
         offset * ((timing.duration as number) - FREEZE_LENGTH);
     }
-  }, []);
+  };
 
   return {
     onScrubberPointerDown,

@@ -4,7 +4,7 @@ import { h, render } from 'preact';
 import { html } from '../../utils/builder';
 
 import { KanjiEntry } from './KanjiEntry';
-import { PopupOptionsProvider } from './options-context';
+import { popupOptions } from './popup-options';
 import { getSelectedIndex } from './selected-index';
 import { ShowPopupOptions } from './show-popup';
 
@@ -51,6 +51,8 @@ function renderKanjiEntry({
   options: ShowPopupOptions;
   selectState: 'unselected' | 'selected' | 'flash';
 }): HTMLElement {
+  popupOptions.interactive.value = options.interactive;
+
   const containerElement = html('div', {
     /* Make sure it's possible to scroll all the way to the bottom of each kanji
      * table. */
@@ -58,18 +60,14 @@ function renderKanjiEntry({
       'scroll-snap-align: start; scroll-margin-bottom: var(--expand-button-allowance);',
   });
   render(
-    h(
-      PopupOptionsProvider,
-      { interactive: options.interactive },
-      h(KanjiEntry, {
-        entry,
-        index,
-        kanjiReferences: options.kanjiReferences,
-        onStartCopy: options.onStartCopy,
-        selectState,
-        showComponents: options.showKanjiComponents,
-      })
-    ),
+    h(KanjiEntry, {
+      entry,
+      index,
+      kanjiReferences: options.kanjiReferences,
+      onStartCopy: options.onStartCopy,
+      selectState,
+      showComponents: options.showKanjiComponents,
+    }),
     containerElement
   );
   return containerElement;

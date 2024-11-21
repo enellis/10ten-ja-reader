@@ -1,6 +1,5 @@
 import { KanjiResult } from '@birchill/jpdict-idb';
 import type { RenderableProps } from 'preact';
-import { useMemo } from 'preact/hooks';
 
 import { useLocale } from '../../common/i18n';
 import {
@@ -19,7 +18,7 @@ type Props = {
 export function KanjiReferencesTable({ entry, kanjiReferences }: Props) {
   const { t, langTag } = useLocale();
 
-  const referenceTableInfo = useMemo(() => {
+  const referenceTableInfo = (() => {
     const referenceNames = getSelectedReferenceLabels(kanjiReferences, t);
     const referenceTableInfo = [];
     for (const ref of referenceNames) {
@@ -64,7 +63,7 @@ export function KanjiReferencesTable({ entry, kanjiReferences }: Props) {
     }
 
     return referenceTableInfo;
-  }, [t, kanjiReferences]);
+  })();
 
   // The layout we want is something in-between what CSS grid and CSS multicol
   // can do. See:

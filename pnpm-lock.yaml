@@ -20,6 +20,9 @@ importers:
       '@birchill/normal-jp':
         specifier: 1.5.2
         version: 1.5.2
+      '@preact/signals':
+        specifier: ^1.3.0
+        version: 1.3.0(preact@10.24.3)
       classname-variants:
         specifier: 1.5.0
         version: 1.5.0
@@ -1063,6 +1066,14 @@ packages:
 
   '@polka/url@1.0.0-next.28':
     resolution: {integrity: sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==}
+
+  '@preact/signals-core@1.8.0':
+    resolution: {integrity: sha512-OBvUsRZqNmjzCZXWLxkZfhcgT+Fk8DDcT/8vD6a1xhDemodyy87UJRJfASMuSD8FaAIeGgGm85ydXhm7lr4fyA==}
+
+  '@preact/signals@1.3.0':
+    resolution: {integrity: sha512-EOMeg42SlLS72dhoq6Vjq08havnLseWmPQ8A0YsgIAqMgWgx7V1a39+Pxo6i7SY5NwJtH4849JogFq3M67AzWg==}
+    peerDependencies:
+      preact: 10.x
 
   '@release-it/keep-a-changelog@5.0.0':
     resolution: {integrity: sha512-Y1xqZe50jqK8qKlzEfGLVTjSkn57e/QlQMXHhKRWGgsv8Qy/X0LN1CJphoskZu7p7sAD3RihxhXrjJhRPE4JcA==}
@@ -6689,6 +6700,13 @@ snapshots:
   '@polka/url@0.5.0': {}
 
   '@polka/url@1.0.0-next.28': {}
+
+  '@preact/signals-core@1.8.0': {}
+
+  '@preact/signals@1.3.0(preact@10.24.3)':
+    dependencies:
+      '@preact/signals-core': 1.8.0
+      preact: 10.24.3
 
   '@release-it/keep-a-changelog@5.0.0(release-it@17.10.0(typescript@5.6.3))':
     dependencies:
