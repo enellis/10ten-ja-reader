@@ -89,7 +89,7 @@ const config = {
     }),
     new rspack.NormalModuleReplacementPlugin(
       /\/i18n$/,
-      path.resolve(__dirname, 'src', 'common', 'i18n.polyfill.tsx')
+      path.resolve(__dirname, 'src', 'common', 'i18n.polyfill.ts')
     ),
     new rspack.HtmlRspackPlugin({
       template: './src/options/options.html',

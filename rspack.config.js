@@ -149,7 +149,7 @@ const testConfig = {
     }),
     new rspack.NormalModuleReplacementPlugin(
       /\/i18n$/,
-      path.resolve(__dirname, 'src', 'common', 'i18n.polyfill.tsx')
+      path.resolve(__dirname, 'src', 'common', 'i18n.polyfill.ts')
     ),
   ],
 };

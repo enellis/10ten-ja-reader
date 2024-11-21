@@ -1,11 +1,4 @@
-import { RenderableProps, createContext } from 'preact';
-import {
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'preact/hooks';
+import { effect, signal } from '@preact/signals';
 
 import { isObject } from '../utils/is-object';
 
@@ -16,89 +9,55 @@ export type TranslateFunctionType = (
 
 export type SetLocaleFunctionType = (locale: LocaleType) => void;
 
-export type i18nContextType = {
-  t: TranslateFunctionType;
-  langTag: string;
-};
+export const locale = signal<'en' | 'ja' | 'zh_CN'>('en');
 
-const i18nContext = createContext<i18nContextType>({
-  t: () => 'Not initialized',
-  langTag: 'en',
-});
+const t = signal<TranslateFunctionType>(() => 't not initialized');
+const langTag = signal('en');
+
+export function useLocale() {
+  return { t: t.value, langTag: langTag.value };
+}
 
 const SUPPORTED_LOCALES = ['en', 'ja', 'zh_CN'] as const;
 type LocaleType = (typeof SUPPORTED_LOCALES)[number];
 
-type I18nProviderProps = {
-  locale?: LocaleType;
-};
+const isLoading = signal<boolean>(true);
+const setLocale = signal<SetLocaleFunctionType>(() => {
+  throw new Error('setLocale not initialized');
+});
 
-export function I18nProvider(props: RenderableProps<I18nProviderProps>) {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [t, setT] = useState<TranslateFunctionType>(
-    () => () => 'Not initialized'
-  );
-  const [setLocale, setSetLocale] = useState<SetLocaleFunctionType>(
-    () => () => {
-      throw new Error('Not initialized');
-    }
-  );
+void (async () => {
+  const messages: Record<LocaleType, LocaleData> = {
+    en: new Map(),
+    ja: new Map(),
+    zh_CN: new Map(),
+  };
 
-  useLayoutEffect(() => {
-    void (async () => {
-      const messages: Record<LocaleType, LocaleData> = {
-        en: new Map(),
-        ja: new Map(),
-        zh_CN: new Map(),
-      };
+  for (const locale of SUPPORTED_LOCALES) {
+    const { default: localeMessages } = await import(
+      `../../_locales/${locale}/messages.json`
+    );
+    messages[locale] = parseLocale(localeMessages);
+  }
 
-      for (const locale of SUPPORTED_LOCALES) {
-        const { default: localeMessages } = await import(
-          `../../_locales/${locale}/messages.json`
-        );
-        messages[locale] = parseLocale(localeMessages);
-      }
-
-      setT(
-        () => (key: string, substitutions?: string | Array<string>) =>
-          localizeMessage(key, messages[props.locale || 'en'], substitutions)
-      );
-      setSetLocale(() => (locale: LocaleType) => {
-        if (!SUPPORTED_LOCALES.includes(locale)) {
-          throw new Error(`Unsupported locale ${locale}`);
-        }
-
-        setT(
-          () => (key: string, substitutions?: string | Array<string>) =>
-            localizeMessage(key, messages[locale], substitutions)
-        );
-      });
-
-      setIsLoading(false);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (isLoading) {
-      return;
+  setLocale.value = (locale: LocaleType) => {
+    if (!SUPPORTED_LOCALES.includes(locale)) {
+      throw new Error(`Unsupported locale ${locale}`);
     }
 
-    setLocale(props.locale || 'en');
-  }, [isLoading, props.locale]);
+    t.value = (key: string, substitutions?: string | Array<string>) =>
+      localizeMessage(key, messages[locale], substitutions);
+  };
 
-  const langTag = useMemo(() => t('lang_tag'), [t, props.locale]);
-  const value = useMemo(() => ({ t, langTag }), [t, langTag]);
+  isLoading.value = false;
+})();
 
-  return (
-    <i18nContext.Provider value={value}>
-      {!isLoading && props.children}
-    </i18nContext.Provider>
-  );
-}
-
-export function useLocale(): i18nContextType {
-  return useContext(i18nContext);
-}
+effect(() => {
+  if (!isLoading.value) {
+    setLocale.value(locale.value || 'en');
+    langTag.value = t.value('lang_tag');
+  }
+});
 
 const warnedMissingKeys = new Set<string>();
 
