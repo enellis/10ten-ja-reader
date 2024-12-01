@@ -501,6 +501,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -524,6 +525,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -547,6 +549,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -571,6 +574,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -595,6 +599,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -626,6 +631,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -655,6 +661,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -686,6 +693,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -709,6 +717,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '令和',
+      reading: 'れいわ',
       year: 0,
       month: undefined,
       day: undefined,
@@ -738,6 +747,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 0,
       month: undefined,
       day: undefined,
@@ -761,6 +771,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 56,
       month: undefined,
       day: undefined,
@@ -784,6 +795,7 @@ describe('getTextAtPoint', () => {
     assert.deepEqual(result!.meta, {
       type: 'era',
       era: '昭和',
+      reading: 'しょうわ',
       year: 3,
       month: undefined,
       day: undefined,

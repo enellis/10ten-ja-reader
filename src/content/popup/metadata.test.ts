@@ -23,7 +23,9 @@ vi.mock('../../common/i18n', async () => {
 
 import { ShogiMeta } from '../shogi';
 
-import { renderMetadata } from './metadata';
+import { h, render } from 'preact';
+import { ShogiInfo } from './Metadata/ShogiInfo';
+import { html } from '../../utils/builder';
 
 describe('renderShogiInfo', () => {
   afterEach(() => {
@@ -179,16 +181,10 @@ function getShogiMove(
   meta: Omit<ShogiMeta, 'type' | 'matchLen'>,
   localeToUse?: 'en' | 'ja' | 'zh_CN'
 ): string | undefined {
-  const params: Parameters<typeof renderMetadata>[0] = {
-    fxData: undefined,
-    preferredUnits: 'metric',
-    isCombinedResult: false,
+  const shogiMeta: ShogiMeta = {
+    ...meta,
+    type: 'shogi',
     matchLen: 5, // Not used
-    meta: {
-      ...meta,
-      type: 'shogi',
-      matchLen: 5, // Not used
-    },
   };
 
   const prevLocale = locale;
@@ -197,7 +193,7 @@ function getShogiMove(
   }
 
   let result =
-    renderMetadata(params)?.querySelector('#shogi-move')?.textContent ??
+    renderShogiMetadata(shogiMeta).querySelector('#shogi-move')?.textContent ??
     undefined;
 
   // Drop any zero-width spaces since we only add them for Safari's sake and
@@ -209,4 +205,10 @@ function getShogiMove(
   }
 
   return result;
+}
+
+export function renderShogiMetadata(meta: ShogiMeta): HTMLElement {
+  const container = html('div');
+  render(h(ShogiInfo, { meta }), container);
+  return container;
 }

@@ -1,7 +1,251 @@
+import { BackgroundRequest } from '../background/background-request';
 import { getCombinedCharRange, getNegatedCharRange } from '../utils/char-range';
-import { DateArray, eraInfo } from '../utils/era-info';
 
 import { parseNumber } from './numbers';
+
+const preGregorianEras = new Map<string, string>([
+  ['大宝', 'たいほう'],
+  ['慶雲', 'けいうん'],
+  ['和銅', 'わどう'],
+  ['霊亀', 'れいき'],
+  ['養老', 'ようろう'],
+  ['神亀', 'じんき'],
+  ['天平', 'てんぴょう'],
+  ['天平感宝', 'てんぴょうかんぽう'],
+  ['天平勝宝', 'てんぴょうしょうほう'],
+  ['天平宝字', 'てんぴょうじょうじ'],
+  ['天平神護', 'てんぴょうじんご'],
+  ['神護景雲', 'じんごけいうん'],
+  ['宝亀', 'ほうき'],
+  ['天応', 'てんおう'],
+  ['延暦', 'えんりゃく'],
+  ['大同', 'だいどう'],
+  ['弘仁', 'こうにん'],
+  ['天長', 'てんちょう'],
+  ['承和', 'じょうわ'],
+  ['嘉祥', 'かしょう'],
+  ['仁寿', 'にんじゅ'],
+  ['斉衡', 'さいこう'],
+  ['天安', 'てんあん'],
+  ['貞観', 'じょうがん'],
+  ['元慶', 'がんぎょう'],
+  ['仁和', 'にんな'],
+  ['寛平', 'かんぴょう'],
+  ['昌泰', 'しょうたい'],
+  ['延喜', 'えんぎ'],
+  ['延長', 'えんちょう'],
+  ['承平', 'じょうへい'],
+  ['天慶', 'てんぎょう'],
+  ['天暦', 'てんりゃく'],
+  ['天徳', 'てんとく'],
+  ['応和', 'おうわ'],
+  ['康保', 'こうほう'],
+  ['安和', 'あんな'],
+  ['天禄', 'てんろく'],
+  ['天延', 'てんえん'],
+  ['貞元', 'じょうげん'],
+  ['天元', 'てんげん'],
+  ['永観', 'えいかん'],
+  ['寛和', 'かんな'],
+  ['永延', 'えいえん'],
+  ['永祚', 'えいそ'],
+  ['正暦', 'しょうりゃく'],
+  ['長徳', 'ちょうとく'],
+  ['長保', 'ちょうほう'],
+  ['寛弘', 'かんこう'],
+  ['長和', 'ちょうわ'],
+  ['寛仁', 'かんにん'],
+  ['治安', 'じあん'],
+  ['万寿', 'まんじゅ'],
+  ['長元', 'ちょうげん'],
+  ['長暦', 'ちょうりゃく'],
+  ['長久', 'ちょうきゅう'],
+  ['寛徳', 'かんとく'],
+  ['永承', 'えいしょう'],
+  ['天喜', 'てんぎ'],
+  ['康平', 'こうへい'],
+  ['治暦', 'じりゃく'],
+  ['延久', 'えんきゅう'],
+  ['承保', 'じょうほう'],
+  ['承暦', 'じょうりゃく'],
+  ['永保', 'えいほう'],
+  ['応徳', 'おうとく'],
+  ['寛治', 'かんじ'],
+  ['嘉保', 'かほう'],
+  ['永長', 'えいちょう'],
+  ['承徳', 'じょうとく'],
+  ['康和', 'こうわ'],
+  ['長治', 'ちょうじ'],
+  ['嘉承', 'かじょう'],
+  ['天仁', 'てんにん'],
+  ['天永', 'てんねい'],
+  ['永久', 'えいきゅう'],
+  ['元永', 'げんえい'],
+  ['保安', 'ほうあん'],
+  ['天治', 'てんじ'],
+  ['大治', 'だいじ'],
+  ['天承', 'てんしょう'],
+  ['長承', 'ちょうしょう'],
+  ['保延', 'ほうえん'],
+  ['永治', 'えいじ'],
+  ['康治', 'こうじ'],
+  ['天養', 'てんよう'],
+  ['久安', 'きゅうあん'],
+  ['仁平', 'にんぺい'],
+  ['久寿', 'きゅうじゅ'],
+  ['保元', 'ほうげん'],
+  ['平治', 'へいじ'],
+  ['永暦', 'えいりゃく'],
+  ['応保', 'おうほう'],
+  ['長寛', 'ちょうかん'],
+  ['永万', 'えいまん'],
+  ['仁安', 'にんあん'],
+  ['嘉応', 'かおう'],
+  ['承安', 'しょうあん'],
+  ['安元', 'あんげん'],
+  ['治承', 'じしょう'],
+  ['養和', 'ようわ'],
+  ['寿永', 'じゅえい'],
+  ['元暦', 'げんりゃく'],
+  ['文治', 'ぶんじ'],
+  ['建久', 'けんきゅう'],
+  ['正治', 'しょうじ'],
+  ['建仁', 'けんにん'],
+  ['元久', 'げんきゅう'],
+  ['建永', 'けんえい'],
+  ['承元', 'じょうげん'],
+  ['建暦', 'けんりゃく'],
+  ['建保', 'けんぽう'],
+  ['承久', 'じょうきゅう'],
+  ['貞応', 'じょうおう'],
+  ['元仁', 'げんにん'],
+  ['嘉禄', 'かろく'],
+  ['安貞', 'あんてい'],
+  ['寛喜', 'かんき'],
+  ['貞永', 'じょうえい'],
+  ['天福', 'てんぷく'],
+  ['文暦', 'ぶんりゃく'],
+  ['嘉禎', 'かてい'],
+  ['暦仁', 'りゃくにん'],
+  ['延応', 'えんおう'],
+  ['仁治', 'にんじ'],
+  ['寛元', 'かんげん'],
+  ['宝治', 'ほうじ'],
+  ['建長', 'けんちょう'],
+  ['康元', 'こうげん'],
+  ['正嘉', 'しょうか'],
+  ['正元', 'しょうげん'],
+  ['文応', 'ぶんおう'],
+  ['弘長', 'こうちょう'],
+  ['文永', 'ぶんえい'],
+  ['建治', 'けんじ'],
+  ['弘安', 'こうあん'],
+  ['正応', 'しょうおう'],
+  ['永仁', 'えいにん'],
+  ['正安', 'しょうあん'],
+  ['乾元', 'けんげん'],
+  ['嘉元', 'かげん'],
+  ['徳治', 'とくじ'],
+  ['延慶', 'えんきょう'],
+  ['応長', 'おうちょう'],
+  ['正和', 'しょうわ'],
+  ['文保', 'ぶんぽう'],
+  ['元応', 'げんおう'],
+  ['元亨', 'げんこう'],
+  ['正中', 'しょうちゅ'],
+  ['嘉暦', 'かりゃく'],
+  ['元徳', 'げんとく'],
+  ['元弘', 'げんこう'],
+  ['正慶', 'しょうけい'],
+  ['建武', 'けんむ'],
+  ['延元', 'えいげん'],
+  ['興国', 'こうこく'],
+  ['正平', 'しょうへい'],
+  ['暦応', 'りゃくおう'],
+  ['康永', 'こうえい'],
+  ['貞和', 'じょうわ'],
+  ['観応', 'かんおう'],
+  ['建徳', 'けんとく'],
+  ['文中', 'ぶんちゅう'],
+  ['天授', 'てんじゅ'],
+  ['弘和', 'こうわ'],
+  ['元中', 'げんちゅう'],
+  ['文和', 'ぶんな'],
+  ['延文', 'えんぶん'],
+  ['康安', 'こうあん'],
+  ['貞治', 'じょうじ'],
+  ['応安', 'おうあん'],
+  ['永和', 'えいわ'],
+  ['康暦', 'こうりゃく'],
+  ['永徳', 'えいとく'],
+  ['至徳', 'しとく'],
+  ['嘉慶', 'かけい'],
+  ['康応', 'こうおう'],
+  ['明徳', 'めいとく'],
+  ['応永', 'おうえい'],
+  ['正長', 'しょうちょう'],
+  ['永享', 'えいきょう'],
+  ['嘉吉', 'かきつ'],
+  ['文安', 'ぶんあん'],
+  ['宝徳', 'ほうとく'],
+  ['享徳', 'きょうとく'],
+  ['康正', 'こうしょう'],
+  ['長禄', 'ちょうろく'],
+  ['寛正', 'かんしょう'],
+  ['文正', 'ぶんしょう'],
+  ['応仁', 'おうにん'],
+  ['文明', 'ぶんめい'],
+  ['長享', 'ちょうきょう'],
+  ['延徳', 'えんとく'],
+  ['明応', 'めいおう'],
+  ['文亀', 'ぶんき'],
+  ['永正', 'えいしょう'],
+  ['大永', 'だいえい'],
+  ['享禄', 'きょうろく'],
+  ['天文', 'てんぶん'],
+  ['弘治', 'こうじ'],
+  ['永禄', 'えいろく'],
+  ['元亀', 'げんき'],
+  ['天正', 'てんしょう'],
+  ['文禄', 'ぶんろく'],
+  ['慶長', 'けいちょう'],
+  ['元和', 'げんな'],
+  ['寛永', 'かんえい'],
+  ['正保', 'しょうほう'],
+  ['慶安', 'けいあん'],
+  ['承応', 'じょうおう'],
+  ['明暦', 'めいれき'],
+  ['万治', 'まんじ'],
+  ['寛文', 'かんぶん'],
+  ['延宝', 'えんぽう'],
+  ['天和', 'てんな'],
+  ['貞享', 'じょうきょう'],
+  ['元禄', 'げんろく'],
+  ['宝永', 'ほうえい'],
+  ['正徳', 'しょうとく'],
+  ['享保', 'きょうほう'],
+  ['元文', 'げんぶん'],
+  ['寛保', 'かんぽう'],
+  ['延享', 'えんきょう'],
+  ['寛延', 'かんえん'],
+  ['宝暦', 'ほうれき'],
+  ['明和', 'めいわ'],
+  ['安永', 'あんえい'],
+  ['天明', 'てんめい'],
+  ['寛政', 'かんせい'],
+  ['享和', 'きょうわ'],
+  ['文化', 'ぶんか'],
+  ['文政', 'ぶんせい'],
+  ['天保', 'てんぽう'],
+  ['弘化', 'こうか'],
+  ['嘉永', 'かえい'],
+  ['安政', 'あんせい'],
+  ['万延', 'まんえい'],
+  ['文久', 'ぶんきゅう'],
+  ['元治', 'げんじ'],
+  ['慶応', 'けいおう'],
+  ['明治', 'めいじ'],
+]);
 
 type GregorianEraInfo = {
   reading: string;
@@ -39,7 +283,7 @@ const maxEraLength = Math.max(
   ...[
     ...Object.keys(eraAliases),
     ...Object.keys(gregorianEras),
-    ...Object.keys(eraInfo),
+    ...preGregorianEras.keys(),
   ].map((key) => key.length)
 );
 
@@ -93,6 +337,7 @@ export function startsWithEraName(text: string): boolean {
 export type EraMeta = {
   type: 'era';
   era: string;
+  reading?: string;
   // 0 here represents that the matched text used 元年 (equivalent to 1 but we
   // might want to display it differently).
   year: number;
@@ -109,9 +354,12 @@ export function extractEraMetadata(text: string): EraMeta | undefined {
     return undefined;
   }
 
+  const era = parsedDate.era;
+
   return {
     type: 'era',
-    era: parsedDate.era,
+    era,
+    reading: gregorianEras[era]?.reading || preGregorianEras.get(era),
     year: parsedDate.year,
     month: parsedDate.month,
     day: parsedDate.day,
@@ -120,7 +368,9 @@ export function extractEraMetadata(text: string): EraMeta | undefined {
 }
 
 function isEraName(text: string): boolean {
-  return text in eraAliases || text in gregorianEras || text in eraInfo;
+  return (
+    text in eraAliases || text in gregorianEras || preGregorianEras.has(text)
+  );
 }
 
 function isGregorianYear(era: string, year: number): boolean {
@@ -140,17 +390,16 @@ export type EraInfoDate = {
   day?: number;
 };
 
-export type EraInfo = {
-  reading: string;
+export type EraInfoTimeSpan = {
   dateStart: EraInfoDate;
   dateEnd?: EraInfoDate;
 };
 
-export function getEraInfo(meta: EraMeta): EraInfo | undefined {
+export async function getEraInfoTimeSpan(
+  meta: EraMeta
+): Promise<EraInfoTimeSpan | undefined> {
   if (isGregorianYear(meta.era, meta.year)) {
     const eraInfo = gregorianEras[meta.era];
-
-    const reading = eraInfo.reading;
 
     const gregorianYear = eraInfo.start + Math.max(meta.year, 1) - 1;
     const date = {
@@ -159,141 +408,20 @@ export function getEraInfo(meta: EraMeta): EraInfo | undefined {
       day: meta.day,
     };
 
-    return { reading, dateStart: date };
+    return { dateStart: date };
   }
 
-  const reading = eraInfo[meta.era].reading;
+  const browser = await import('webextension-polyfill');
 
-  let dateStart: EraInfoDate | undefined = undefined;
-  let dateEnd: EraInfoDate | undefined = undefined;
-
-  if (!meta.day) {
-    const res = calculateTimeSpanOfEraYearOrMonth(
-      meta.era,
-      meta.year,
-      meta.month
-    );
-
-    if (!res) {
-      return undefined;
-    }
-
-    dateStart = dateToEraInfoDate(res.dateStart);
-    dateEnd = dateToEraInfoDate(res.dateEnd);
-  } else if (meta.month) {
-    dateStart = dateToEraInfoDate(
-      toGregorianDate(meta.era, meta.year, meta.month, meta.day)
-    );
-  }
-
-  if (!dateStart) {
-    return undefined;
-  }
-
-  return { reading, dateStart, dateEnd };
-}
-
-function dateArrayToDate(dateArray: DateArray, dayOffset: number = 0) {
-  return new Date(dateArray[0], dateArray[1] - 1, dateArray[2] + dayOffset);
-}
-
-function toGregorianDate(
-  era: string,
-  year: number,
-  month: number,
-  day: number
-): Date {
-  const dateArray = eraInfo[era].years[year][month];
-  const date = dateArrayToDate(dateArray, day - 1);
-  return date;
-}
-
-function dateToEraInfoDate(date: Date): EraInfoDate {
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-    day: date.getDate(),
+  const message: BackgroundRequest = {
+    ...meta,
+    type: 'calculateEraDateTimeSpan',
   };
-}
 
-function calculateTimeSpanOfEraYearOrMonth(
-  era: string,
-  year: number,
-  month?: number
-): { dateStart: Date; dateEnd: Date } | undefined {
-  year = Math.max(year, 1);
-
-  const eraData = eraInfo[era];
-
-  const startOfEraDate = dateArrayToDate(eraData.start);
-  const endOfEraDate = dateArrayToDate(eraData.end);
-
-  if (!startOfEraDate || !endOfEraDate) {
-    return undefined;
-  }
-
-  if (!(year in eraData.years)) {
-    return undefined;
-  }
-
-  let startOfTimeSpan = startOfEraDate;
-
-  if (month) {
-    if (!(month in eraData.years[year])) {
-      return undefined;
-    }
-
-    const startOfMonthArray = eraData.years[year][month];
-
-    startOfTimeSpan = dateArrayToDate(startOfMonthArray);
-  } else if (1 in eraData.years[year]) {
-    const startOfYearArray = eraData.years[year][1];
-
-    startOfTimeSpan = dateArrayToDate(startOfYearArray);
-  }
-
-  const laterStartDate =
-    startOfEraDate > startOfTimeSpan ? startOfEraDate : startOfTimeSpan;
-
-  let endOfTimeSpan = endOfEraDate;
-
-  if (month) {
-    const nextMonthIsLeapMonth = month > 0 && (-month) in eraData.years[year];
-    const isLastMonthInYear = !nextMonthIsLeapMonth && Math.abs(month) === 12;
-
-    let nYear = year;
-    let nMonth = month;
-
-    if (nextMonthIsLeapMonth) {
-      nMonth = -nMonth;
-    } else if (isLastMonthInYear) {
-      nYear++;
-      nMonth = 1;
-    } else {
-      nMonth = Math.abs(nMonth) + 1;
-    }
-
-    if (nYear in eraData.years && nMonth in eraData.years[nYear]) {
-      const startOfNextMonthArray = eraData.years[nYear][nMonth];
-
-      endOfTimeSpan = dateArrayToDate(startOfNextMonthArray, -1);
-    }
-  } else {
-    const notLastYearOfEra = year + 1 in eraData.years;
-    if (notLastYearOfEra) {
-      const startOfNextYearArray = eraData.years[year + 1][1];
-
-      endOfTimeSpan = dateArrayToDate(startOfNextYearArray, -1);
-    }
-  }
-
-  const earlierEndDate =
-    endOfEraDate < endOfTimeSpan ? endOfEraDate : endOfTimeSpan;
-
-  return {
-    dateStart: laterStartDate,
-    dateEnd: earlierEndDate,
-  };
+  const result = (await browser.runtime.sendMessage(
+    message
+  )) as EraInfoTimeSpan;
+  return result;
 }
 
 type ParsedEraDate = {
@@ -347,8 +475,6 @@ export function parseEraDate(text: string): ParsedEraDate | undefined {
     if (typeof year === 'number') {
       if (year < 1) {
         year = null;
-      } else if (!isGregorianYear(era, year) && !(year in eraInfo[era].years)) {
-        year = null;
       }
     }
   } else if (typeof matches[2] !== 'undefined') {
@@ -374,8 +500,6 @@ export function parseEraDate(text: string): ParsedEraDate | undefined {
         if (month < 1 || month > 12) {
           month = null;
         }
-      } else if (!(month in eraInfo[era].years[Math.max(year, 1)])) {
-        month = null;
       }
     }
   }

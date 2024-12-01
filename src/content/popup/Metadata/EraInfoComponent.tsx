@@ -1,40 +1,54 @@
 import { classes } from '../../../utils/classes';
 
-import type { EraInfo, EraInfoDate, EraMeta } from '../../dates';
+import type { EraInfoDate, EraInfoTimeSpan, EraMeta } from '../../dates';
 
 type Props = {
   meta: EraMeta;
-  eraInfo: EraInfo;
+  timeSpan?: EraInfoTimeSpan;
 };
 
 export function EraInfoComponent(props: Props) {
   return (
     <div class="tp-text-2xl tp-flex tp-items-baseline" lang="ja">
       <span class="tp-text-[--primary-highlight]">
-        <ruby>
-          {props.meta.era}
-          <rp>(</rp>
-          <rt class="tp-text-sm">{props.eraInfo.reading}</rt>
-          <rp>)</rp>
-          {props.meta.year === 0 ? '元年' : `${props.meta.year}年`}
-          {props.meta.month && `${props.meta.month}月`.replace('-', '閏')}
-          {props.meta.day && `${props.meta.day}日`}
-        </ruby>
+        {props.meta.reading ? (
+          <ruby>
+            {props.meta.era}
+            <rp>(</rp>
+            <rt class="tp-text-sm">{props.meta.reading}</rt>
+            <rp>)</rp>
+          </ruby>
+        ) : (
+          <span>{props.meta.era}</span>
+        )}
+        {props.meta.year === 0 ? '元年' : `${props.meta.year}年`}
+        {props.meta.month && `${props.meta.month}月`.replace('-', '閏')}
+        {props.meta.day && `${props.meta.day}日`}
       </span>
       <span class="tp-px-1.5">=</span>
-      <EraTimeSpan {...props} />
+      {props.timeSpan ? (
+        <EraTimeSpan meta={props.meta} timeSpan={props.timeSpan} />
+      ) : (
+        <span class="tp-text-[--reading-highlight]">invalid</span>
+      )}
     </div>
   );
 }
 
-function EraTimeSpan({ meta, eraInfo }: { meta: EraMeta; eraInfo: EraInfo }) {
+function EraTimeSpan({
+  meta,
+  timeSpan,
+}: {
+  meta: EraMeta;
+  timeSpan: EraInfoTimeSpan;
+}) {
   return (
     <span class="tp-text-[--reading-highlight]">
-      <EraDate meta={meta} date={eraInfo.dateStart} />
-      {eraInfo.dateEnd && (
+      <EraDate meta={meta} date={timeSpan.dateStart} />
+      {timeSpan.dateEnd && (
         <span>
           {' - '}
-          <EraDate meta={meta} date={eraInfo.dateEnd} />
+          <EraDate meta={meta} date={timeSpan.dateEnd} />
         </span>
       )}
     </span>

@@ -1,7 +1,9 @@
+import { useLayoutEffect, useState } from 'preact/hooks';
+
 import { ContentConfigParams } from '../../../common/content-config-params';
 import { classes } from '../../../utils/classes';
 
-import { getEraInfo } from '../../dates';
+import { getEraInfoTimeSpan } from '../../dates';
 import { SelectionMeta } from '../../meta';
 
 import { CurrencyInfo } from './CurrencyInfo';
@@ -27,38 +29,44 @@ export function MetadataContainer({
   meta,
   metaonly = false,
 }: Props) {
-  let metadata = undefined;
-  switch (meta.type) {
-    case 'era': {
-      const eraInfo = getEraInfo(meta);
-      if (eraInfo) {
-        metadata = <EraInfoComponent meta={meta} eraInfo={eraInfo} />;
+  const [metadata, setMetadata] = useState<unknown>(undefined);
+
+  useLayoutEffect(() => {
+    switch (meta.type) {
+      case 'era': {
+        void getEraInfoTimeSpan(meta).then((timeSpan) => {
+          setMetadata(<EraInfoComponent meta={meta} timeSpan={timeSpan} />);
+        });
+
+        setMetadata(<EraInfoComponent meta={meta} />);
+        break;
       }
-      break;
-    }
-    case 'measure': {
-      metadata = <MeasureInfo meta={meta} preferredUnits={preferredUnits} />;
-      break;
-    }
-    case 'currency': {
-      if (fxData) {
-        metadata = <CurrencyInfo meta={meta} fxData={fxData} />;
-      }
-      break;
-    }
-    case 'number': {
-      if (meta.matchLen > matchLen) {
-        metadata = (
-          <NumberInfo meta={meta} isCombinedResult={isCombinedResult} />
+      case 'measure': {
+        setMetadata(
+          <MeasureInfo meta={meta} preferredUnits={preferredUnits} />
         );
+        break;
       }
-      break;
+      case 'currency': {
+        if (fxData) {
+          setMetadata(<CurrencyInfo meta={meta} fxData={fxData} />);
+        }
+        break;
+      }
+      case 'number': {
+        if (meta.matchLen > matchLen) {
+          setMetadata(
+            <NumberInfo meta={meta} isCombinedResult={isCombinedResult} />
+          );
+        }
+        break;
+      }
+      case 'shogi': {
+        setMetadata(<ShogiInfo meta={meta} />);
+        break;
+      }
     }
-    case 'shogi': {
-      metadata = <ShogiInfo meta={meta} />;
-      break;
-    }
-  }
+  }, []);
 
   return metadata ? (
     <div
