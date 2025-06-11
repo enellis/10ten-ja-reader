@@ -1,6 +1,7 @@
 import { MajorDataSeries } from '@birchill/jpdict-idb';
 import { type VNode } from 'preact';
 
+import { TabDisplay } from '../../common/content-config-params';
 import { useLocale } from '../../common/i18n';
 import { classes } from '../../utils/classes';
 import { getMouseCapabilityMql } from '../../utils/device';
@@ -8,14 +9,16 @@ import { isFenix } from '../../utils/ua-utils';
 
 import { DisplayMode } from '../popup-state';
 
-import { CloseButton } from './CloseButton';
+import { CloseButton } from './CloseButtonTW';
 import { Book } from './Icons/Book';
 import { Cog } from './Icons/Cog';
 import { KanjiIcon } from './Icons/KanjiIcon';
 import { Person } from './Icons/Person';
 import { Pin } from './Icons/Pin';
+import { usePopupOptions } from './options-context';
 
 export function TabBar({
+  tabDisplay,
   closeShortcuts,
   displayMode,
   enabledTabs,
@@ -26,6 +29,7 @@ export function TabBar({
   pinShortcuts,
   selectedTab,
 }: {
+  tabDisplay: TabDisplay;
   closeShortcuts?: ReadonlyArray<string>;
   displayMode: DisplayMode;
   enabledTabs: Record<MajorDataSeries, boolean>;
@@ -37,6 +41,7 @@ export function TabBar({
   selectedTab: MajorDataSeries;
 }) {
   const { t, langTag } = useLocale();
+  const { interactive } = usePopupOptions();
 
   const sections: Array<{ series: MajorDataSeries; icon: VNode }> = [
     { series: 'words', icon: <Book /> },
@@ -56,17 +61,38 @@ export function TabBar({
 
   return (
     <div
-      class="tab-bar"
+      class={classes(
+        'tp:shrink-0 tp:flex tp:p-0 tp:m-0',
+        /* Safari appears to need the following */
+        'tp:overflow-hidden',
+        'tp:bg-(--cell-highlight-bg) tp:text-(--cell-highlight-fg)',
+        /* Make sure we are above the content area. This is mostly needed when we are
+         * showing the copy overlay since the entry data might overflow its region in
+         * that case. */
+        'tp:z-1',
+        ['left', 'right'].includes(tabDisplay) &&
+          'tp:flex-col tp:overflow-visible',
+        tabDisplay === 'right' && 'tp:order-1'
+      )}
       lang={langTag}
       onPointerUp={() => {
         // Dummy event to make Safari not eat clicks on the child links / buttons.
       }}
     >
-      <ul class="tabs">
+      <ul
+        class={classes(
+          'tp:grow-1 tp:flex tp:p-0 tp:m-0',
+          ['left', 'right'].includes(tabDisplay) && 'tp:flex-col'
+        )}
+      >
         {sections.map(({ series, icon }) => (
           <li
             key={series}
-            class={classes('tab', !enabledTabs[series] && 'disabled')}
+            class={classes(
+              'tp:grow-1 tp:list-none tp:text-xs tp:select-none',
+              interactive && 'tp:text-base',
+              !enabledTabs[series] && 'disabled'
+            )}
             role="presentation"
             aria-selected={series === selectedTab ? true : undefined}
           >

@@ -67,6 +67,7 @@ export function renderPopup(
 
     windowElem.append(
       renderTabBar({
+        tabDisplay: options.tabDisplay,
         closeShortcuts: options.closeShortcuts,
         displayMode: options.displayMode,
         enabledTabs,

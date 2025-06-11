@@ -1,14 +1,16 @@
 import { MajorDataSeries } from '@birchill/jpdict-idb';
 import { h, render } from 'preact';
 
+import { TabDisplay } from '../../common/content-config-params';
 import { html } from '../../utils/builder';
 
 import { DisplayMode } from '../popup-state';
 import { QueryResult } from '../query';
 
-import { TabBar } from './TabBar';
+import { TabBar } from './TabBarTW';
 
 export function renderTabBar(props: {
+  tabDisplay: TabDisplay;
   closeShortcuts?: ReadonlyArray<string>;
   displayMode: DisplayMode;
   enabledTabs: Record<MajorDataSeries, boolean>;
