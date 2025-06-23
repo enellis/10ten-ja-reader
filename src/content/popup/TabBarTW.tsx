@@ -41,7 +41,7 @@ export function TabBar({
   selectedTab: MajorDataSeries;
 }) {
   const { t, langTag } = useLocale();
-  const { interactive } = usePopupOptions();
+  const { interactive, fontSize } = usePopupOptions();
 
   const sections: Array<{ series: MajorDataSeries; icon: VNode }> = [
     { series: 'words', icon: <Book /> },
@@ -70,7 +70,7 @@ export function TabBar({
          * showing the copy overlay since the entry data might overflow its region in
          * that case. */
         'tp:z-1',
-        ['left', 'right'].includes(tabDisplay) &&
+        (tabDisplay === 'left' || tabDisplay === 'right') &&
           'tp:flex-col tp:overflow-visible',
         tabDisplay === 'right' && 'tp:order-1'
       )}
@@ -82,16 +82,21 @@ export function TabBar({
       <ul
         class={classes(
           'tp:grow-1 tp:flex tp:p-0 tp:m-0',
-          ['left', 'right'].includes(tabDisplay) && 'tp:flex-col'
+          (tabDisplay === 'left' || tabDisplay === 'right') && 'tp:flex-col'
         )}
       >
         {sections.map(({ series, icon }) => (
           <li
             key={series}
             class={classes(
-              'tp:grow-1 tp:list-none tp:text-xs tp:select-none',
-              interactive && 'tp:text-base',
-              !enabledTabs[series] && 'disabled'
+              'tp:list-none tp:select-none',
+              tabDisplay === 'left' || tabDisplay === 'right'
+                ? 'tp:grow-0'
+                : 'tp:grow-1 tp:max-tab:grow-0',
+              !interactive || fontSize === 'large' || fontSize === 'xl'
+                ? 'tp:text-xs'
+                : 'tp:text-base',
+              !enabledTabs[series] && 'tp:opacity-30 tp:pointer-events-none'
             )}
             role="presentation"
             aria-selected={series === selectedTab ? true : undefined}
@@ -99,6 +104,12 @@ export function TabBar({
             {/* We use a button because if it's a link there will be a little tooltip
                 show in the corner of the browser when the user hovers over the tab. */}
             <button
+              class={classes(
+                /* Reset button styles */
+                'tp:appearance-none tp:bg-transparent tp:m-0 tp:border-0 tp:text-inherit tp:cursor-pointer',
+                'tp:opacity-70 tp:flex tp:items-center tp:w-full tp:px-0.5 tp:py-2 tp:leading-1 tp:no-underline',
+                interactive && 'tp:px-0.5 tp:py-3'
+              )}
               onClick={(event: Event) => {
                 event.preventDefault();
                 if (series !== selectedTab && onSwitchDictionary) {
@@ -106,8 +117,21 @@ export function TabBar({
                 }
               }}
             >
-              <span class="icon">{icon}</span>
-              <span>{t(`tabs_${series}_label`)}</span>
+              <span
+                class={classes(tabDisplay === 'top' && 'tp:max-tab:hidden')}
+              >
+                <span
+                  class={classes(
+                    'tp:block tp:mr-2 tp:max-tab:mr-0 tp:fill-current',
+                    /* Push the icon up a little so it looks more aligned with the text */
+                    'tp:mb-0.5',
+                    interactive ? 'tp:size-[14px]' : 'tp:size-[12px]'
+                  )}
+                >
+                  {icon}
+                </span>
+                <span>{t(`tabs_${series}_label`)}</span>
+              </span>
             </button>
           </li>
         ))}
