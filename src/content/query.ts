@@ -228,15 +228,18 @@ async function queryOther(
     return searchResult;
   }
 
-  return addNamePreview({
-    words: words?.words ?? null,
-    names: searchResult.names,
-    kanji: searchResult.kanji,
-    resultType: 'full',
-  });
+  return addNamePreview(
+    {
+      words: words?.words ?? null,
+      names: searchResult.names,
+      kanji: searchResult.kanji,
+      resultType: 'full',
+    },
+    options.wordLookup
+  );
 }
 
-function addNamePreview(result: QueryResult): QueryResult {
+function addNamePreview(result: QueryResult, wordLookup: boolean): QueryResult {
   if (!result.words || !result.names) {
     return result;
   }
@@ -261,8 +264,13 @@ function addNamePreview(result: QueryResult): QueryResult {
   //
   // - they have a kanji reading or katakana reading,
   // - and are all are as long as the longest names match,
-  // - are all longer than the longest words match
-  const minLength = Math.max(result.names.matchLen, result.words.matchLen + 1);
+  // - if it's a word lookup, are all longer than the longest words match
+  // - if it's a translation request, are all the same length as the translated
+  //   text's length.
+  const minLength = Math.max(
+    result.names.matchLen,
+    wordLookup ? result.words.matchLen + 1 : result.words.matchLen
+  );
 
   for (const name of result.names.data) {
     // Names should be in descending order of length so if any of them is less
